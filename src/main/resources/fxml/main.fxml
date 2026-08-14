@@ -51,14 +51,6 @@
         <Button text="Browse..." fx:id="browseOutputBtn"
                 onAction="#onBrowseOutput"
                 GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-
-        <!-- Output filename suggestion -->
-        <Label text="" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <HBox spacing="8" GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2">
-            <Label text="Filename:"/>
-            <TextField fx:id="outputNameField" promptText="output.mp4" HBox.hgrow="ALWAYS"/>
-            <Button text="Apply" onAction="#onAutoFillOutputName"/>
-        </HBox>
     </GridPane>
 
     <Separator/>
@@ -100,9 +92,13 @@
         <TextField fx:id="audioBitrateField" promptText="192k"
                    GridPane.rowIndex="2" GridPane.columnIndex="3"/>
 
-        <!-- Overwrite -->
-        <Label text="Options:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <HBox spacing="14" GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3">
+        <!-- Duration + overwrite -->
+        <Label text="Duration (s):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="durationField" promptText="(leave empty = audio length)"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Options:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+        <HBox spacing="14" GridPane.rowIndex="3" GridPane.columnIndex="3">
             <CheckBox fx:id="overwriteCheck" text="Overwrite existing file"/>
         </HBox>
     </GridPane>

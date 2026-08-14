@@ -32,6 +32,7 @@ public class ConversionRequest {
     private String preset;        // ultrafast, fast, medium, slow, veryslow
     private String audioBitrate;  // ví dụ "192k"
     private Boolean overwrite;    // true → -y, false → -n
+    private Integer duration;    // thời lượng video tính bằng giây — null/missing → dùng audio duration (-shortest)
 
     public ConversionRequest() {}
 
@@ -65,4 +66,7 @@ public class ConversionRequest {
 
     public Boolean getOverwrite() { return overwrite; }
     public void setOverwrite(Boolean v) { this.overwrite = v; }
+
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer v) { this.duration = v; }
 }

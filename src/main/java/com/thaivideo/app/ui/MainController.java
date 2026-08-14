@@ -34,7 +34,6 @@ public class MainController {
     @FXML private TextField imagePathField;
     @FXML private TextField audioPathField;
     @FXML private TextField outputPathField;
-    @FXML private TextField outputNameField;
 
     @FXML private ComboBox<String> aspectCombo;
     @FXML private ComboBox<String> presetCombo;
@@ -43,6 +42,7 @@ public class MainController {
     @FXML private TextField heightField;
     @FXML private TextField crfField;
     @FXML private TextField audioBitrateField;
+    @FXML private TextField durationField;
 
     @FXML private CheckBox overwriteCheck;
 
@@ -97,7 +97,7 @@ public class MainController {
         applyResolutionForSelectedAspect();
 
         // Gợi ý tên file output theo thời gian
-        outputNameField.setText(defaultOutputName());
+        outputPathField.setText(defaultOutputName());
 
         progressBar.setProgress(0);
         progressLabel.setText("0%");
@@ -117,7 +117,17 @@ public class MainController {
     @FXML
     public void onBrowseAudio() {
         File f = chooseFile("Choose audio", FileChooserExt.audioFilter());
-        if (f != null) audioPathField.setText(f.getAbsolutePath());
+        if (f != null) {
+            audioPathField.setText(f.getAbsolutePath());
+            // Mặc định Output = cùng folder với audio, giữ nguyên filename đã có (hoặc tự sinh)
+            suggestOutputFromAudio(f);
+        }
+    }
+
+    private void suggestOutputFromAudio(File audioFile) {
+        File parent = audioFile.getParentFile();
+        if (parent == null) return;
+        outputPathField.setText(new File(parent, defaultOutputName(audioFile)).getAbsolutePath());
     }
 
     @FXML
@@ -128,21 +138,7 @@ public class MainController {
         if (initial != null) dc.setInitialDirectory(initial);
         File dir = dc.showDialog(browseOutputBtn.getScene().getWindow());
         if (dir != null) {
-            String name = (outputNameField.getText() == null || outputNameField.getText().isBlank())
-                    ? defaultOutputName() : outputNameField.getText();
-            outputPathField.setText(new File(dir, name).getAbsolutePath());
-        }
-    }
-
-    @FXML
-    public void onAutoFillOutputName() {
-        if (outputPathField.getText() != null && !outputPathField.getText().isBlank()) {
-            File f = new File(outputPathField.getText());
-            if (f.isDirectory() || outputPathField.getText().endsWith(File.separator)) {
-                outputPathField.setText(new File(outputPathField.getText(), defaultOutputName()).getAbsolutePath());
-            } else {
-                outputPathField.setText(new File(f.getParent(), defaultOutputName()).getAbsolutePath());
-            }
+            outputPathField.setText(new File(dir, defaultOutputName()).getAbsolutePath());
         }
     }
 
@@ -302,6 +298,7 @@ public class MainController {
         req.setWidth(parseIntOrNull(widthField.getText()));
         req.setHeight(parseIntOrNull(heightField.getText()));
         req.setAudioBitrate(audioBitrateField.getText());
+        req.setDuration(parseIntOrNull(durationField.getText()));
         req.setOverwrite(overwriteCheck.isSelected());
         return req;
     }
@@ -354,7 +351,30 @@ public class MainController {
     }
 
     private String defaultOutputName() {
+        return defaultOutputName(null);
+    }
+
+    /**
+     * Sinh tên file output mặc định:
+     * <ul>
+     *     <li>có audio → {@code audioStem_video.mp4}</li>
+     *     <li>không có audio → {@code video_yyyyMMdd_HHmmss.mp4} (tránh trùng)</li>
+     * </ul>
+     */
+    private String defaultOutputName(File audioFile) {
+        if (audioFile != null) {
+            String stem = stripExtension(audioFile.getName());
+            if (stem != null && !stem.isBlank()) {
+                return stem + "_video.mp4";
+            }
+        }
         return "video_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".mp4";
+    }
+
+    private String stripExtension(String filename) {
+        if (filename == null) return null;
+        int dot = filename.lastIndexOf('.');
+        return (dot <= 0) ? filename : filename.substring(0, dot);
     }
 
     private String safeAspect(String s) {

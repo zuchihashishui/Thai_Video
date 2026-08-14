@@ -130,6 +130,17 @@ public class FfmpegService {
                 log.info("Probed audio duration: {}s", String.format("%.3f", audioSeconds));
             }
 
+            // Tổng thời lượng dùng để tính progress:
+            // - Nếu request có duration cố định → dùng requestedDuration (đơn vị: giây)
+            // - Ngược lại → dùng audioSeconds (probe được từ ffprobe)
+            double totalSeconds;
+            if (req.getDuration() != null && req.getDuration() > 0) {
+                totalSeconds = req.getDuration();
+                log.info("Using requested duration: {}s", totalSeconds);
+            } else {
+                totalSeconds = audioSeconds;
+            }
+
             List<String> cmd = buildCommand(req, outputPath);
             log.info("Running ffmpeg: {}", String.join(" ", cmd));
 
@@ -171,7 +182,7 @@ public class FfmpegService {
                         // End of block — commit progress.
                         String outTimeUs = block.get("out_time_us");
                         String speedRaw = block.get("speed");
-                        if (outTimeUs != null && audioSeconds > 0) {
+                        if (outTimeUs != null && totalSeconds > 0) {
                             try {
                                 double current = Long.parseLong(outTimeUs) / 1_000_000.0;
                                 double frac = Math.min(1.0, Math.max(0.0, current / audioSeconds));
@@ -303,6 +314,11 @@ public class FfmpegService {
         String audioBitrate = (req.getAudioBitrate() != null && !req.getAudioBitrate().isBlank())
                 ? req.getAudioBitrate() : defaultAudioBitrate;
         boolean overwrite = (req.getOverwrite() == null) ? true : req.getOverwrite();
+        Integer requestedDuration = req.getDuration();
+
+        // Khi có duration cố định: audio loop vô hạn, video giới hạn bởi -t.
+        // Khi không có: ảnh loop vô hạn, video kết thúc theo audio (-shortest).
+        boolean hasFixedDuration = (requestedDuration != null && requestedDuration > 0);
 
         String vf = String.format(
                 "scale=%d:%d:force_original_aspect_ratio=decrease,"
@@ -316,18 +332,25 @@ public class FfmpegService {
         if (threads > 0) {
             cmd.add("-threads"); cmd.add(String.valueOf(threads));
         }
-        // Dùng -progress pipe:1 để stream key=value ra stdout; -nostats để tắt
-        // progress bar mặc định trên stderr (log vẫn đầy đủ nhờ -loglevel info).
         cmd.add("-progress"); cmd.add("pipe:1");
         cmd.add("-nostats");
         cmd.add("-loglevel"); cmd.add("info");
-        // Input: image looped
-        cmd.add("-loop"); cmd.add("1");
-        cmd.add("-framerate"); cmd.add("2");        // tốc độ ảnh đầu vào, ảnh tĩnh thì 2 fps đủ
-        cmd.add("-i"); cmd.add(req.getImagePath());
 
-        // Input: audio
-        cmd.add("-i"); cmd.add(req.getAudioPath());
+        if (hasFixedDuration) {
+            // Audio loop vô hạn — ảnh chỉ cần 1 frame (không cần -loop)
+            cmd.add("-stream_loop"); cmd.add("-1");
+            cmd.add("-i"); cmd.add(req.getAudioPath());
+            cmd.add("-framerate"); cmd.add("2");
+            cmd.add("-i"); cmd.add(req.getImagePath());
+            // Giới hạn video theo thời gian cố định
+            cmd.add("-t"); cmd.add(String.valueOf(requestedDuration));
+        } else {
+            // Ảnh loop vô hạn — video kết thúc khi audio hết
+            cmd.add("-loop"); cmd.add("1");
+            cmd.add("-framerate"); cmd.add("2");
+            cmd.add("-i"); cmd.add(req.getImagePath());
+            cmd.add("-i"); cmd.add(req.getAudioPath());
+        }
 
         // Video encode
         cmd.add("-vf"); cmd.add(vf);
@@ -340,9 +363,10 @@ public class FfmpegService {
         cmd.add("-c:a"); cmd.add("aac");
         cmd.add("-b:a"); cmd.add(audioBitrate);
 
-        // Đảm bảo video dừng theo audio
-        cmd.add("-shortest");
-        // Cho phép stream / web preview ngay
+        if (!hasFixedDuration) {
+            // Chỉ dùng -shortest khi không có duration cố định
+            cmd.add("-shortest");
+        }
         cmd.add("-movflags"); cmd.add("+faststart");
 
         cmd.add(outputPath.toString());

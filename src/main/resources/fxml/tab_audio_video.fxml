@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<!--
+  Tab "Audio & Video" — ghép 1 audio + 1 intro (1 lần) + 1 loop (lặp theo audio).
+  Controller được inject thủ công bằng MainController (không khai báo fx:controller ở đây).
+-->
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:id="audioVideoRoot"
+      spacing="14"
+      styleClass="root">
+
+    <padding>
+        <Insets top="4" right="4" bottom="4" left="4"/>
+    </padding>
+
+    <!-- ===== Inputs section ===== -->
+    <GridPane hgap="8" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints halignment="LEFT" prefWidth="100"/>
+        </columnConstraints>
+
+        <!-- Audio -->
+        <Label text="Audio:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="audioPathField" promptText="Path to audio (.mp3 .wav ...)"
+                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Button text="Browse..." fx:id="browseAudioBtn"
+                onAction="#onBrowseAudio"
+                GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+
+        <!-- Intro (1 lần) -->
+        <Label text="Intro (1×):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="introPathField" promptText="Video intro — phát 1 lần đầu"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Button text="Browse..." fx:id="browseIntroBtn"
+                onAction="#onBrowseIntro"
+                GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+
+        <!-- Loop (lặp) -->
+        <Label text="Loop (×N):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="loopPathField" promptText="Video loop — lặp đến hết audio"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Button text="Browse..." fx:id="browseLoopBtn"
+                onAction="#onBrowseLoop"
+                GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+
+        <!-- Output folder -->
+        <Label text="Output:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="outputPathField" promptText="Full output path (.mp4)"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Button text="Browse..." fx:id="browseOutputBtn"
+                onAction="#onBrowseOutput"
+                GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+    </GridPane>
+
+    <Separator/>
+
+    <!-- ===== Settings section ===== -->
+    <GridPane hgap="8" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <!-- Aspect -->
+        <Label text="Aspect:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="aspectCombo" promptText="16:9 / 9:16"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1" maxWidth="Infinity"/>
+
+        <!-- Preset -->
+        <Label text="Preset:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+        <ComboBox fx:id="presetCombo" promptText="encoding speed"
+                  GridPane.rowIndex="0" GridPane.columnIndex="3" maxWidth="Infinity"/>
+
+        <!-- Resolution -->
+        <Label text="Width:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="widthField" promptText="1280"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Height:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <TextField fx:id="heightField" promptText="720"
+                   GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+        <!-- CRF + audio bitrate -->
+        <Label text="CRF (0–51):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="crfField" promptText="23 = default, 18 ≈ visually lossless"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Audio bitrate:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        <TextField fx:id="audioBitrateField" promptText="192k"
+                   GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+        <!-- Total output duration (giây) — nếu trống thì dùng audio length -->
+        <Label text="Durations (s):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="durationField" promptText="(leave empty = audio length)"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <!-- Overwrite -->
+        <Label text="Options:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+        <HBox spacing="14" GridPane.rowIndex="3" GridPane.columnIndex="3">
+            <CheckBox fx:id="overwriteCheck" text="Overwrite existing file"/>
+        </HBox>
+    </GridPane>
+
+    <Separator/>
+
+    <!-- ===== Actions ===== -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button fx:id="convertBtn" text="Compose ▶" onAction="#onConvert"
+                styleClass="primary"/>
+        <Button fx:id="cancelBtn"  text="Cancel ✖" onAction="#onCancel"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel" text="Ready."/>
+    </HBox>
+
+    <!-- ===== Progress ===== -->
+    <HBox fx:id="progressBox" spacing="8" alignment="CENTER_LEFT" visible="false">
+        <ProgressBar fx:id="progressBar" prefWidth="9999" HBox.hgrow="ALWAYS"/>
+        <Label fx:id="progressLabel" text="0%" minWidth="60" styleClass="progressLabel"/>
+    </HBox>
+
+    <!-- ===== Log ===== -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="Log:" styleClass="sectionLabel"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Copy" onAction="#onCopyLog" styleClass="smallBtn"/>
+        <Button text="Clear" onAction="#onClearLog" styleClass="smallBtn"/>
+    </HBox>
+    <TextArea fx:id="logArea" editable="false" wrapText="true"
+              VBox.vgrow="ALWAYS" prefHeight="320" minHeight="200"
+              styleClass="logArea"/>
+</VBox>

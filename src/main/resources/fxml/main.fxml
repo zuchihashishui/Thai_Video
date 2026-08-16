@@ -3,6 +3,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.*?>
 
+<!--
+  Shell root — chỉ chứa thanh tiêu đề + TabPane.
+  Tab "Audio & Image" được nhúng từ tab_image_audio.fxml (controller: ImageAudioController).
+  Tab "Audio & Video" đang để trống — sẽ triển khai sau.
+-->
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.thaivideo.app.ui.MainController"
       spacing="14"
@@ -20,114 +25,23 @@
 
     <Separator/>
 
-    <!-- ===== Inputs section ===== -->
-    <GridPane hgap="8" vgap="10">
-        <columnConstraints>
-            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints halignment="LEFT" prefWidth="100"/>
-        </columnConstraints>
+    <!-- ===== Tabs ===== -->
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+            <!-- Tab 1: Audio & Image — content được set bằng code (xem MainController) -->
+            <Tab text="Audio &amp; Image"/>
 
-        <!-- Image -->
-        <Label text="Image:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="imagePathField" promptText="Path to image (.jpg .png ...)"
-                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <Button text="Browse..." fx:id="browseImageBtn"
-                onAction="#onBrowseImage"
-                GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-
-        <!-- Audio -->
-        <Label text="Audio:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="audioPathField" promptText="Path to audio (.mp3 .wav ...)"
-                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Button text="Browse..." fx:id="browseAudioBtn"
-                onAction="#onBrowseAudio"
-                GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-
-        <!-- Output folder -->
-        <Label text="Output:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="outputPathField" promptText="Full output path (.mp4)"
-                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Button text="Browse..." fx:id="browseOutputBtn"
-                onAction="#onBrowseOutput"
-                GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-    </GridPane>
-
-    <Separator/>
-
-    <!-- ===== Settings section ===== -->
-    <GridPane hgap="8" vgap="10">
-        <columnConstraints>
-            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints halignment="RIGHT" minWidth="110" prefWidth="110"/>
-            <ColumnConstraints hgrow="ALWAYS"/>
-        </columnConstraints>
-
-        <!-- Aspect -->
-        <Label text="Aspect:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="aspectCombo" promptText="16:9 / 9:16"
-                  GridPane.rowIndex="0" GridPane.columnIndex="1" maxWidth="Infinity"/>
-
-        <!-- Preset -->
-        <Label text="Preset:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
-        <ComboBox fx:id="presetCombo" promptText="encoding speed"
-                  GridPane.rowIndex="0" GridPane.columnIndex="3" maxWidth="Infinity"/>
-
-        <!-- Resolution -->
-        <Label text="Width:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="widthField" promptText="1280"
-                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-        <Label text="Height:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
-        <TextField fx:id="heightField" promptText="720"
-                   GridPane.rowIndex="1" GridPane.columnIndex="3"/>
-
-        <!-- CRF + audio bitrate -->
-        <Label text="CRF (0–51):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="crfField" promptText="23 = default, 18 ≈ visually lossless"
-                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-        <Label text="Audio bitrate:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
-        <TextField fx:id="audioBitrateField" promptText="192k"
-                   GridPane.rowIndex="2" GridPane.columnIndex="3"/>
-
-        <!-- Duration + overwrite -->
-        <Label text="Duration (s):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <TextField fx:id="durationField" promptText="(leave empty = audio length)"
-                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-
-        <Label text="Options:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
-        <HBox spacing="14" GridPane.rowIndex="3" GridPane.columnIndex="3">
-            <CheckBox fx:id="overwriteCheck" text="Overwrite existing file"/>
-        </HBox>
-    </GridPane>
-
-    <Separator/>
-
-    <!-- ===== Actions ===== -->
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Button fx:id="convertBtn" text="Convert ▶" onAction="#onConvert"
-                styleClass="primary"/>
-        <Button fx:id="cancelBtn"  text="Cancel ✖" onAction="#onCancel"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="statusLabel" text="Ready."/>
-    </HBox>
-
-    <!-- ===== Progress ===== -->
-    <HBox fx:id="progressBox" spacing="8" alignment="CENTER_LEFT" visible="false">
-        <ProgressBar fx:id="progressBar" prefWidth="9999" HBox.hgrow="ALWAYS"/>
-        <Label fx:id="progressLabel" text="0%" minWidth="60" styleClass="progressLabel"/>
-    </HBox>
-
-    <!-- ===== Log ===== -->
-    <HBox alignment="CENTER_LEFT" spacing="10">
-        <Label text="Log:" styleClass="sectionLabel"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button text="Copy" onAction="#onCopyLog" styleClass="smallBtn"/>
-        <Button text="Clear" onAction="#onClearLog" styleClass="smallBtn"/>
-    </HBox>
-    <TextArea fx:id="logArea" editable="false" wrapText="true"
-              VBox.vgrow="ALWAYS" prefHeight="320" minHeight="200"
-              styleClass="logArea"/>
+            <!-- Tab 2: Audio & Video (đang phát triển) -->
+            <Tab text="Audio &amp; Video">
+                <VBox alignment="CENTER" spacing="12">
+                    <padding>
+                        <Insets top="40" right="16" bottom="16" left="16"/>
+                    </padding>
+                    <Label text="Audio &amp; Video" styleClass="title"/>
+                    <Label text="(Tab đang phát triển — chức năng ghép audio vào video có sẵn)"
+                           styleClass="subtitle"/>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
 </VBox>

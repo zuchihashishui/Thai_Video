@@ -23,4 +23,10 @@ public final class FileChooserExt {
     public static FileChooser.ExtensionFilter allFilter() {
         return new FileChooser.ExtensionFilter("All files", "*.*");
     }
+
+    public static FileChooser.ExtensionFilter videoFilter() {
+        return new FileChooser.ExtensionFilter(
+                "Video files",
+                "*.mp4", "*.mov", "*.mkv", "*.webm", "*.avi", "*.flv", "*.m4v", "*.wmv");
+    }
 }
